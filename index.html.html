@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        .settings-popover {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            z-index: 10;
+        }
+        .settings-popover.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 to-purple-100 min-h-screen flex items-center justify-center font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Pomodoro Timer</h1>
+                <div class="relative">
+                    <button id="settingsBtn" class="p-2 text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    <div id="settingsPopover" class="settings-popover bg-white rounded-lg shadow-xl p-4 w-64">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Timer Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="pomodoroLength" class="block text-sm font-medium text-gray-700 mb-1">Pomodoro Length (minutes)</label>
+                                <input type="number" id="pomodoroLength" min="1" max="60" value="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                            </div>
+                            <div>
+                                <label for="shortBreakLength" class="block text-sm font-medium text-gray-700 mb-1">Short Break (minutes)</label>
+                                <input type="number" id="shortBreakLength" min="1" max="30" value="5"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                            </div>
+                            <div>
+                                <label for="longBreakLength" class="block text-sm font-medium text-gray-700 mb-1">Long Break (minutes)</label>
+                                <input type="number" id="longBreakLength" min="1" max="60" value="15"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex justify-center items-center">
+                <svg class="progress-ring" width="220" height="220">
+                    <circle class="text-gray-200" stroke="currentColor" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                    <circle class="progress-ring__circle text-indigo-600" stroke="currentColor" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                </svg>
+                <div id="timer" class="text-6xl font-bold text-indigo-600 font-['Inconsolata'] absolute">25:00</div>
+            </div>
+            <div class="flex justify-center gap-4 mt-8">
+                <button id="startBtn"
+                    class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold
+                    hover:bg-indigo-700 active:bg-indigo-800
+                    transform active:scale-95 transition-all duration-150
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Start
+                </button>
+                <button id="resetBtn"
+                    class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold
+                    hover:bg-gray-700 active:bg-gray-800
+                    transform active:scale-95 transition-all duration-150
+                    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script>
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let timerId = null;
+        let totalTime = 25 * 60; // Store initial time for progress calculation
+
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPopover = document.getElementById('settingsPopover');
+        const pomodoroLength = document.getElementById('pomodoroLength');
+        const shortBreakLength = document.getElementById('shortBreakLength');
+        const longBreakLength = document.getElementById('longBreakLength');
+        const alarmSound = document.getElementById('alarmSound');
+
+        const radius = document.querySelector('.progress-ring__circle').r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        const progressRing = document.querySelector('.progress-ring__circle');
+        progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressRing.style.strokeDashoffset = `${circumference}`;
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            // Update progress ring
+            const progress = timeLeft / totalTime;
+            const offset = circumference - (progress * circumference);
+            progressRing.style.strokeDashoffset = offset;
+        }
+
+        function startTimer() {
+            if (timerId === null) {
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    if (timeLeft === 0) {
+                        clearInterval(timerId);
+                        timerId = null;
+                        Promise.all([
+                            alarmSound.play(),
+                            alert('Time is up!')
+                        ]);
+                    }
+                }, 1000);
+                startBtn.textContent = 'Pause';
+                startBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'active:bg-indigo-800');
+                startBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'active:bg-yellow-800');
+            } else {
+                clearInterval(timerId);
+                timerId = null;
+                startBtn.textContent = 'Start';
+                startBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'active:bg-yellow-800');
+                startBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'active:bg-indigo-800');
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            totalTime = pomodoroLength.value * 60;
+            timeLeft = totalTime;
+            updateDisplay();
+            startBtn.textContent = 'Start';
+            startBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'active:bg-yellow-800');
+            startBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'active:bg-indigo-800');
+        }
+
+        // Settings popover toggle
+        settingsBtn.addEventListener('click', () => {
+            settingsPopover.classList.toggle('show');
+        });
+
+        // Close settings when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!settingsBtn.contains(e.target) && !settingsPopover.contains(e.target)) {
+                settingsPopover.classList.remove('show');
+            }
+        });
+
+        // Update timer when settings change
+        pomodoroLength.addEventListener('change', resetTimer);
+        shortBreakLength.addEventListener('change', resetTimer);
+        longBreakLength.addEventListener('change', resetTimer);
+
+        startBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+    </script>
+</body>
+</html>
